@@ -1,6 +1,5 @@
 package com.one.tree;
 
-import javafx.scene.control.SelectionMode;
 
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
@@ -65,3 +64,12 @@ public class SelectJTree {
         new SelectJTree().init();
     }
 }
+
+
+
+
+
+
+
+
+

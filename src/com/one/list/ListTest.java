@@ -72,8 +72,8 @@ public class ListTest {
 
         //组装JComboBox
         Vector<String> vector = new Vector<>();
-        List<String> list = List.of("java自学宝典", "轻量级javaEE企业应用实战", "Android基础教程", "jQuery实战教程", "SpringBoot企业级开发");
-        vector.addAll(list);
+//        List<String> list = List.of("java自学宝典", "轻量级javaEE企业应用实战", "Android基础教程", "jQuery实战教程", "SpringBoot企业级开发");
+//        vector.addAll(list);
 
         bookSelector = new JComboBox<>(vector);
 

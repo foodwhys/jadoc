@@ -1,7 +1,6 @@
 package com.one.progress;
 
 
-import javax.imageio.plugins.tiff.TIFFDirectory;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

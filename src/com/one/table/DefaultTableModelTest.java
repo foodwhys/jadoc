@@ -1,91 +1,65 @@
 package com.one.table;
 
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Vector;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.Arrays;
+
+import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableModel;
 
 public class DefaultTableModelTest {
-    JFrame jf = new JFrame("TableModel演示");
-    //创建一维数组，存储标题
-    Object[] titles = {"姓名","年龄","性别"};
+	JFrame jf = new JFrame("可按照列排序的表格");
 
-    //创建二维数组，存储数据
-    Object[][] data = {
-            {"李清照",29,"女"},
-            {"苏格拉底",56,"男"},
-            {"李白",35,"男"},
-            {"弄玉",18,"女"},
-            {"虎头",2,"男"}
+    //定义二维数组作为表格数据
+
+    Object[][] tableData = {
+
+            new Object[]{"李清照",29,"女"},
+            new Object[]{"苏格拉底",56,"男"},
+            new Object[]{"李白",35,"男"},
+            new Object[]{"弄玉",18,"女"},
+            new Object[]{"虎头",2,"男"},
 
     };
 
-    private Vector titlesV = new Vector();//存储标题
-    private Vector<Vector> dataV = new Vector<>();//存储数据
+    //定义一个一维数组，作为列标题
+    Object[] columnTitle = {"姓名","年龄","性别"};
 
+    JTable table = new JTable(tableData,columnTitle);
 
+    //将原表格里面的TableModel封装成SortTableModel对象
+    SortTableModel sorterModel = new SortTableModel(table.getModel());
 
     public void init(){
-       //组装视图
-        for (int i = 0; i < titles.length; i++) {
-            titlesV.add(titles[i]);
-        }
+        //使用包装后的SortTableModel对象作为JTable的model对象
+        table.setModel(sorterModel);
 
-        for (int i = 0; i < data.length; i++) {
-            Vector t = new Vector<>();
-            for (int j = 0; j < data[i].length; j++) {
-                t.add(data[i][j]);
-            }
-            dataV.add(t);
-        }
-
-
-        //通过DefaultTableModel创建JTable
-        DefaultTableModel model = new DefaultTableModel(dataV,titlesV);
-        JTable jTable = new JTable(model);
-
-        //创建按钮
-        JButton addRow = new JButton("添加一行");
-        JButton addColum = new JButton("添加一列");
-        JButton deleteRow = new JButton("删除一行");
-
-        addRow.addActionListener(new ActionListener() {
+        //为每一列的列头增加鼠标监听器
+        table.getTableHeader().addMouseListener(new MouseAdapter() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                //需要给表格添加一行
-                model.addRow(new Object[]{"柳岩",18,"女"});
+            public void mouseClicked(MouseEvent e) {
+                //如果单击次数小于2，则返回，不是双击
+                if (e.getClickCount()<2){
+                    return;
+                }
+
+                //找出鼠标双击事件所在列的索引
+                int tableColumn = table.columnAtPoint(e.getPoint());
+
+                //将JTable中的列索引，转换成对应的TableModel中的列索引
+                int modelColumn = table.convertColumnIndexToModel(tableColumn);
+
+                //根据指定列进行排序
+                sorterModel.sort(modelColumn);
             }
         });
 
-        deleteRow.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int selectedRow = jTable.getSelectedRow();
-                model.removeRow(selectedRow);
-            }
-        });
-
-
-
-        addColum.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                model.addColumn("职业");
-            }
-        });
-
-        JPanel panel = new JPanel();
-        panel.add(addRow);
-        panel.add(addColum);
-        panel.add(deleteRow);
-
-        jf.add(panel, BorderLayout.SOUTH);
-
-        jf.add(new JScrollPane(jTable));
-        jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        jf.add(new JScrollPane(table));
         jf.pack();
+        jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         jf.setVisible(true);
     }
 
@@ -94,4 +68,120 @@ public class DefaultTableModelTest {
         new DefaultTableModelTest().init();
     }
 
+
+    //自定义SortTableModel，增强原有的TableModel
+
+    class SortTableModel extends AbstractTableModel{
+
+        private TableModel model;
+        private int sortColumn;
+        private Row[] rows;
+
+        public SortTableModel(TableModel model){
+            this.model = model;
+            rows = new Row[model.getRowCount()];
+            //将原TableModel中的每行记录的索引用Row数组保存起来
+            for (int i = 0; i < rows.length; i++) {
+                rows[i] = new Row(i);
+            }
+
+        }
+
+        //实现根据指定列进行排序
+        public void sort(int c){
+            sortColumn = c;
+            Arrays.sort(rows);
+            //触发数据改变的事件
+            fireTableDataChanged();
+        }
+
+        //下面3个方法需要访问model中的数据，所以涉及本model中数据和被封装model数据中的索引转换，程序使用rows完成这种转换
+
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            return model.getValueAt(rows[rowIndex].index,columnIndex);
+        }
+
+        @Override
+        public boolean isCellEditable(int rowIndex, int columnIndex) {
+            return isCellEditable(rows[rowIndex].index,columnIndex);
+        }
+
+        @Override
+        public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+            model.setValueAt(aValue,rows[rowIndex].index,columnIndex);
+        }
+
+        //下面方法的实现把该model的方法委托给原封装的model来实现
+
+
+        @Override
+        public int getRowCount() {
+
+            return model.getRowCount();
+        }
+
+        @Override
+        public int getColumnCount() {
+            return model.getColumnCount();
+        }
+
+
+        @Override
+        public String getColumnName(int column) {
+            return model.getColumnName(column);
+        }
+
+        @Override
+        public Class<?> getColumnClass(int columnIndex) {
+            return model.getColumnClass(columnIndex);
+        }
+
+        private class Row implements Comparable<Row>{
+            //该index保存着被封装Model里每行记录的索引
+            public int index;
+
+            public Row(int index) {
+                this.index = index;
+            }
+
+            //实现两行之间大小的比较
+            @Override
+            public int compareTo(Row o) {
+                Object a = model.getValueAt(index, sortColumn);
+                Object b = model.getValueAt(o.index, sortColumn);
+
+                if (a instanceof Comparable){
+                    return ((Comparable) a).compareTo(b);
+                }else{
+                    return a.toString().compareTo(b.toString());
+                }
+            }
+        }
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
