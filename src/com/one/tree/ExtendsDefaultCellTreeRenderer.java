@@ -6,6 +6,19 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.*;
 
+/**
+ * DefaultTreeCellRenderer 实现类实现了TreeCellRenderer接口，
+ * 该接口里只有 一个用于绘制节点内容的方法: getTreeCellRendererComponent() ，
+ * 该方法负责绘制 JTree 节点 。学习JList的时候，
+ * 如果要绘制JList的列表项外观的内容，需要实现ListCellRenderer 接口，
+ * 通过重写getTreeCellRendererComponent()方法返回一个Component 对象 ，
+ * 该对象就是 JTree 的节点组件 。两者之间非常类似
+ *
+ * DefaultTreeCellRende rer 类继承了JLabel，实现 getTreeCellRendererComponent()方法时返回 this ，
+ * 即返回一个特殊的 JLabel 对象 。
+ * 如果需要根据节点内容来改变节点的外观，则可以再次扩展DefaultTreeCellRenderer 类，
+ * 并再次重写它提供的 getTreeCellRendererComponent()方法。
+ */
 public class ExtendsDefaultCellTreeRenderer {
 
     JFrame jf = new JFrame("根据结点类型定义图标");
